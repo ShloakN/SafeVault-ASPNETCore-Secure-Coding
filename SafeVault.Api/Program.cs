@@ -90,6 +90,9 @@ app.MapPost("/api/auth/login", async (LoginRequest request,
     UserManager<IdentityUser> users, SignInManager<IdentityUser> signIn,
     IConfiguration config) =>
 {
+    if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrEmpty(request.Password))
+        return Results.BadRequest(new { error = "Provide a valid email and password." });
+
     var user = await users.FindByEmailAsync(request.Email.Trim());
     if (user is null || !await signIn.CanSignInAsync(user) ||
         !await users.CheckPasswordAsync(user, request.Password))
@@ -115,7 +118,7 @@ app.MapPost("/api/auth/login", async (LoginRequest request,
 
 app.MapGet("/api/notes", [Authorize] async (ClaimsPrincipal principal, SafeVaultDbContext db) =>
 {
-    var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
     var notes = await db.Notes.AsNoTracking().Where(n => n.OwnerId == userId)
         .OrderBy(n => n.Id).Select(n => new NoteResponse(n.Id, n.Content)).ToListAsync();
@@ -127,7 +130,7 @@ app.MapPost("/api/notes", [Authorize] async (CreateNoteRequest request,
 {
     if (string.IsNullOrWhiteSpace(request.Content) || request.Content.Length > 2000)
         return Results.BadRequest(new { error = "Content must contain 1–2000 characters." });
-    var userId = principal.FindFirstValue(JwtRegisteredClaimNames.Sub);
+    var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
     if (string.IsNullOrWhiteSpace(userId)) return Results.Unauthorized();
 
     var note = new Note { OwnerId = userId, Content = request.Content.Trim() };

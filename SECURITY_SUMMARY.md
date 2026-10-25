@@ -18,8 +18,10 @@
 - Restricts notes queries to the authenticated user's ID.
 - Returns note content as JSON data; any front end must render untrusted content as text.
 
-## Tests
-The xUnit starter suite covers unauthenticated endpoint access, weak registration input, SQL-injection-shaped login input, registration role assignment contract, and JSON/XSS handling expectations. Run `dotnet test` and report the actual results. Expand integration tests to verify a normal user receives HTTP 403 on the admin endpoint and that authenticated users can only access their own notes.
+## Automated test coverage
+The xUnit integration suite uses a named, in-memory SQLite database isolated to its test application instance. It covers invalid and missing authentication input, malformed JSON, oversized and missing note content, SQL-injection-shaped login input, missing/invalid/expired JWTs, issuer/audience/signature validation, role-based admin access, registration role escalation, JSON/XSS response behavior, note ownership isolation, and Identity password hashing.
 
-## Copilot contribution
-Fill this section with the actual Copilot prompts, suggestions, changes reviewed/accepted, and test results from your work. Do not state that Copilot generated code or resolved a vulnerability unless you performed and verified those steps.
+The XSS test verifies that user content is returned as JSON data unchanged. It does not execute a browser: browser clients must display untrusted note content as text and must not pass it to `innerHTML` or another HTML execution sink.
+
+## Verification status
+Using .NET SDK 8.0.426 via `C:\Program Files\dotnet\dotnet.exe`, restore, build, and test succeeded when explicitly targeting `SafeVault.Tests\SafeVault.Tests.csproj` (which references and builds the API): restore completed for both projects; build completed with 0 warnings and 0 errors; tests reported 24 passed, 0 failed, and 0 skipped. The bare `dotnet` command is not on this PowerShell process's `PATH`. Additionally, this SDK/MSBuild does not implicitly select or recognize the repository's `.slnx` as a solution, so use the explicit test project path or run with an SDK version that supports `.slnx` implicit solution handling.
