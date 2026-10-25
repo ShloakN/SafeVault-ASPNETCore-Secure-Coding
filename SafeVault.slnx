@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="SafeVault.Api/SafeVault.Api.csproj" />
+  <Project Path="SafeVault.Tests/SafeVault.Tests.csproj" />
+</Solution>
